@@ -1,0 +1,7 @@
+collections:
+  - name: community.windows
+  - name: ansible.windows
+
+roles:
+  - name: geerlingguy.mysql
+    version: 3.3.0

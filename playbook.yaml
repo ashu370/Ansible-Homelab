@@ -1,0 +1,41 @@
+---
+- name: Capture Active Directory Information
+  hosts: windows_ad_servers
+  gather_facts: no
+  tasks:
+
+    - name: Get AD Domain Info
+      win_shell: |
+        Import-Module ActiveDirectory
+        Get-ADDomain | ConvertTo-Json -Depth 3
+      register: domain_info
+
+    - name: Get AD Forest Info
+      win_shell: |
+        Import-Module ActiveDirectory
+        Get-ADForest | ConvertTo-Json -Depth 3
+      register: forest_info
+
+    - name: Get AD Users (limited to 50 for performance)
+      win_shell: |
+        Import-Module ActiveDirectory
+        Get-ADUser -Filter * -Properties * | Select-Object -First 50 | ConvertTo-Json -Depth 3
+      register: ad_users
+
+    - name: Get AD Groups (limited to 50 for performance)
+      win_shell: |
+        Import-Module ActiveDirectory
+        Get-ADGroup -Filter * | Select-Object -First 50 | ConvertTo-Json -Depth 3
+      register: ad_groups
+
+    - name: Save AD Info to local file (on control node)
+      local_action: copy content="{{ domain_info.stdout }}" dest="./ad_domain_info.json"
+
+    - name: Save AD Forest Info
+      local_action: copy content="{{ forest_info.stdout }}" dest="./ad_forest_info.json"
+
+    - name: Save AD Users Info
+      local_action: copy content="{{ ad_users.stdout }}" dest="./ad_users.json"
+
+    - name: Save AD Groups Info
+      local_action: copy content="{{ ad_groups.stdout }}" dest="./ad_groups.json"
